@@ -1,38 +1,18 @@
-
-
 import { useState, useEffect } from 'react';
-import './App.css';
-
-// 1. MODAL COMPONENT (Defined outside main App)
-const Modal = ({ alert, onClose }) => {
-  if (!alert) return null;
-  return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <h2>⚠️ FRAUD DETECTED!</h2>
-        <hr />
-        <p><strong>Customer:</strong> {alert.customer}</p>
-        <p><strong>Amount:</strong> ${alert.amount}</p>
-        <p><strong>Location:</strong> {alert.location}</p>
-        <p><strong>Risk:</strong> High-Value International Transaction</p>
-        <button onClick={onClose} className="close-modal-btn">Acknowledge & Clear</button>
-      </div>
-    </div>
-  );
-};
+import Sidebar from './components/Sidebar';
+import StatsCard from './components/StatsCard';
+import TransactionForm from './components/TransactionForm';
+import AlertCard from './components/AlertCard';
+import FraudModal from './components/FraudModal';
+import { Bell, Search, AlertTriangle, ShieldCheck, Activity } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 function App() {
   const [alerts, setAlerts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentAlert, setCurrentAlert] = useState(null);
-  const [formData, setFormData] = useState({
-    customer: '',
-    amount: '',
-    location: '',
-    is_international: 0
-  });
 
-  // Fetch Alerts from Backend
+  // Fetch Alerts
   const fetchAlerts = async () => {
     try {
       const response = await fetch('http://localhost:5000/api/fraudAlert');
@@ -48,23 +28,20 @@ function App() {
   }, []);
 
   // Handle Form Submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleTransactionSubmit = async (formData) => {
     try {
-      const response = await fetch('http://localhost:5000/api/transactions', {
+      await fetch('http://localhost:5000/api/transactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
 
-      // Logic: Trigger Pop-up if it meets Fraud Criteria
+      // Fraud Logic
       if (parseFloat(formData.amount) > 250 && formData.is_international === 1) {
         setCurrentAlert(formData);
         setShowModal(true);
       }
 
-      // Reset form and refresh list
-      setFormData({ customer: '', amount: '', location: '', is_international: 0 });
       fetchAlerts();
     } catch (error) {
       console.error("Error submitting transaction:", error);
@@ -82,60 +59,86 @@ function App() {
   };
 
   return (
-    <div className="App">
-      {/* POPUP MODAL */}
-      {showModal && <Modal alert={currentAlert} onClose={() => setShowModal(false)} />}
+    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 font-sans text-slate-900">
 
-      <h1>🛡️ SafePay Fraud Dashboard</h1>
+      {/* Sidebar Navigation */}
+      <Sidebar />
 
-      {/* MODERN FORM */}
-      <form onSubmit={handleSubmit} className="transaction-form">
-        <input 
-          placeholder="Customer Name" 
-          value={formData.customer}
-          onChange={(e) => setFormData({...formData, customer: e.target.value})}
-          required 
-        />
-        <input 
-          type="number" 
-          placeholder="Amount ($)" 
-          value={formData.amount}
-          onChange={(e) => setFormData({...formData, amount: e.target.value})}
-          required 
-        />
-        <input 
-          placeholder="Location" 
-          value={formData.location}
-          onChange={(e) => setFormData({...formData, location: e.target.value})}
-          required 
-        />
-        <div className="checkbox-group">
-          <span>International?</span>
-          <input 
-            type="checkbox" 
-            checked={formData.is_international === 1}
-            onChange={(e) => setFormData({...formData, is_international: e.target.checked ? 1 : 0})}
-          />
-        </div>
-        <button type="submit">Process Payment</button>
-      </form>
+      {/* Main Content Area */}
+      <main className="flex-1 p-8 md:ml-0 transition-all w-full">
 
-      {/* DASHBOARD CARDS */}
-      <div className="dashboard">
-        {alerts.length === 0 ? (
-          <p>No fraud detected. Stay safe!</p>
-        ) : (
-          alerts.map((alert) => (
-            <div key={alert.id} className="alert-card">
-              <div className="card-header">
-                <h3>🚩 Fraud Alert: {alert.customer}</h3>
-                <button className="delete-btn" onClick={() => deleteAlert(alert.id)}>×</button>
-              </div>
-              <p>Detected in <strong>{alert.location}</strong> | Amount: <strong>${alert.amount}</strong></p>
+        {/* Top Header */}
+        <header className="flex justify-between items-center mb-8">
+          <div>
+            <h2 className="text-3xl font-bold text-slate-800">Dashboard</h2>
+            <p className="text-slate-500">Overview of recent transactions and fraud alerts.</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <input
+                placeholder="Search..."
+                className="pl-10 pr-4 py-2 rounded-full border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-64 transition-all hover:w-72"
+              />
+              <Search className="absolute left-3 top-2.5 text-slate-400 w-4 h-4" />
             </div>
-          ))
-        )}
-      </div>
+            <button className="p-2 relative bg-white rounded-full text-slate-500 hover:text-blue-600 shadow-sm border border-slate-100">
+              <Bell size={20} />
+              <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
+            </button>
+            <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white shadow-sm">
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" />
+            </div>
+          </div>
+        </header>
+
+        {/* Stats Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatsCard title="Total Alerts" value={alerts.length} icon={AlertTriangle} color="bg-red-500" />
+          <StatsCard title="Transactions" value="1,204" icon={Activity} color="bg-blue-500" />
+          <StatsCard title="System Status" value="Online" icon={ShieldCheck} color="bg-green-500" />
+          <StatsCard title="Pending Review" value="5" icon={Bell} color="bg-yellow-500" />
+        </div>
+
+        {/* Transaction Input */}
+        <TransactionForm onSubmit={handleTransactionSubmit} />
+
+        {/* Alerts Section */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-bold text-slate-800">Recent Alerts</h3>
+            <span className="bg-slate-200 text-slate-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+              Live Feed
+            </span>
+          </div>
+
+          <div className="space-y-4">
+            {alerts.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center justify-center py-16 bg-white rounded-xl border border-dashed border-slate-300 text-slate-400"
+              >
+                <ShieldCheck size={48} className="mb-2 text-green-500 opacity-50" />
+                <p className="text-lg">All clean! No fraud detected.</p>
+              </motion.div>
+            ) : (
+              alerts.map((alert) => (
+                <AlertCard key={alert.id} alert={alert} onDelete={deleteAlert} />
+              ))
+            )}
+          </div>
+        </section>
+
+      </main>
+
+      {/* Fraud Modal */}
+      {showModal && (
+        <FraudModal
+          alert={currentAlert}
+          onClose={() => setShowModal(false)}
+        />
+      )}
+
     </div>
   );
 }
