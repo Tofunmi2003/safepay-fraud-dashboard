@@ -1,0 +1,83 @@
+.App {
+  max-width: 900px;
+  margin: 0 auto; /* This centers the main container */
+  padding: 40px 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+h1 {
+  text-align: center;
+  color: #1a1a1a;
+  margin-bottom: 30px;
+}
+
+.transaction-form {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: center; /* Centers items inside the form */
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* This centers the cards horizontally */
+  gap: 20px;
+}
+
+.alert-card {
+  width: 100%;
+  max-width: 600px; /* Limits card width so they don't get too stretched */
+  background: white;
+  border-left: 8px solid #ff4444;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-sizing: border-box; /* Ensures padding doesn't break the width */
+}
+
+.alert-card h3 {
+  margin: 0 0 10px 0;
+  color: #d00;
+}
+
+.badge {
+  background: #ff4444;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.delete-btn {
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+
+.delete-btn:hover {
+  background: #cc0000;
+  transform: scale(1.1);
+}
